@@ -9,6 +9,12 @@ resource "google_container_cluster" "primary" {
   network = var.network
   min_master_version = var.master_version
   node_version = var.master_version
+  // enable_legacy_abac ????
+
+  //Stackdriver Logging - Отключен
+  //Stackdriver Monitoring - Отключен
+  //Устаревшие права доступа - Включено
+
 
   # We can't create a cluster with no node pool defined, but we want to only use
   # separately managed node pools. So we create the smallest possible default
