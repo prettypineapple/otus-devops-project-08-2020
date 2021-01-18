@@ -30,6 +30,37 @@ Client: &version.Version{SemVer:"v2.17.0", GitCommit:"a690bad98af45b015bd3da1a41
 kubectl version
 Client Version: version.Info{Major:"1", Minor:"19", GitVersion:"v1.19.3", GitCommit:"1e11e4a2108024935ecfcb2912226cedeafd99df", GitTreeState:"clean", BuildDate:"2020-10-14T12:50:19Z", GoVersion:"go1.15.2", Compiler:"gc", Platform:"linux/amd64"}
 
+4) docker
+docker version
+Client: Docker Engine - Community
+ Version:           19.03.12
+ API version:       1.40
+ Go version:        go1.13.10
+ Git commit:        48a66213fe
+ Built:             Mon Jun 22 15:45:44 2020
+ OS/Arch:           linux/amd64
+ Experimental:      false
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          19.03.12
+  API version:      1.40 (minimum version 1.12)
+  Go version:       go1.13.10
+  Git commit:       48a66213fe
+  Built:            Mon Jun 22 15:44:15 2020
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          1.2.13
+  GitCommit:        7ad184331fa3e55e52b890ea95e65ba581ae3429
+ runc:
+  Version:          1.0.0-rc10
+  GitCommit:        dc9208a3303feef5b3839f4323d9beb36df0a9dd
+ docker-init:
+  Version:          0.18.0
+  GitCommit:        fec3683
+
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Создание k8s кластера с Terraform:
  - gcloud auth login
@@ -40,6 +71,7 @@ Client Version: version.Info{Major:"1", Minor:"19", GitVersion:"v1.19.3", GitCom
  - terraform apply
 
 
+################################################################################################
 
  Поднятие системы мониторинга:
  - поднять кластер k8s
@@ -85,4 +117,24 @@ pass: admin
 
 # TODO: ну как и в ДЗ я встрял на какое-то говно..
 default backend - 404
+
+################################################################################################
+
+Сборка докер образов с приложениями:
+
+1) cd Dockers/search_engine_ui && docker build -t %GITHUBUSER%/search_crawler:1.0 .
+2) cd ../search_engine_crawler && docker build -t %GITHUBUSER%/search_ui:1.0 .
+3) profit
+
+Запуск rabbitmq (non k8s)
+docker run -d --hostname rabbitmq --name rabbitmq-name --network=host -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
+
+Запуск mongodb (non k8s)
+docker run -d --hostname mongodb --name mongodb-name --network=host mongo:4.4.3
+
+
+Запускаем сервисы
+docker run -d --hostname search_crawler --name search_crawler-name --network=host funnyfatty/search_crawler:1.0
+docker run -d --hostname search_crawler --name search_crawler-name --network=host funnyfatty/search_ui:1.0
+
 
