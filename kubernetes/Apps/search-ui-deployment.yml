@@ -1,0 +1,27 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-ui
+  labels:
+    app: search-engine
+    component: ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: search-engine
+      component: ui
+  template:
+    metadata:
+      name: search-ui
+      labels:
+        app: search-engine
+        component: ui
+    spec:
+      containers:
+      - image: funnyfatty/search_ui:1.0
+        name: search-ui
+        env:
+        - name: MONGO
+          value: ui-db

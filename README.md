@@ -66,7 +66,7 @@ Server: Docker Engine - Community
  - gcloud auth login
  - gcloud config set project %PROJECT_ID%
  - gcloud services enable container.googleapis.com
- - cd /terraform/k8s-cluster
+ - cd terraform/k8s-cluster
  - terraform init
  - terraform apply
 
@@ -124,17 +124,34 @@ default backend - 404
 
 1) cd Dockers/search_engine_ui && docker build -t %GITHUBUSER%/search_crawler:1.0 .
 2) cd ../search_engine_crawler && docker build -t %GITHUBUSER%/search_ui:1.0 .
-3) profit
 
-Запуск rabbitmq (non k8s)
-docker run -d --hostname rabbitmq --name rabbitmq-name --network=host -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
+Также запушим в наш репо (иначе в кубере не взлетит):
+docker push funnyfatty/search_ui:1.0
+docker push funnyfatty/search_crawler:1.0
 
-Запуск mongodb (non k8s)
-docker run -d --hostname mongodb --name mongodb-name --network=host mongo:4.4.3
+################################################################################################
+
+Запуск приложения (non k8s)
+
+1) Создаём сетку
+docker network create local_docker --driver bridge
+
+2) Запуск rabbitmq
+docker run -d --hostname rabbitmq --name rabbitmq-name --network=local_docker --network-alias=rabbitmq -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
+
+3) Запуск mongodb
+docker run -d --hostname mongodb --name mongodb-name --network=local_docker --network-alias=mongodb mongo:4.4.3
 
 
-Запускаем сервисы
-docker run -d --hostname search_crawler --name search_crawler-name --network=host funnyfatty/search_crawler:1.0
-docker run -d --hostname search_crawler --name search_crawler-name --network=host funnyfatty/search_ui:1.0
+4)Запускаем сервисы
+docker run -d --hostname search_crawler --name search_crawler-name --network=local_docker --network-alias=search_crawler funnyfatty/search_crawler:1.0
+docker run -d --hostname search_ui --name search_ui-name --network=local_docker --network-alias=search_ui -p 8000:8000 funnyfatty/search_ui:1.0
 
+Если открывается http://localhost:8000/ - то знак хороший.
 
+################################################################################################
+
+Поднимаем приложения в k8s
+
+1) cd kubernetes/Apps && 
+2) kubectl apply -f ...

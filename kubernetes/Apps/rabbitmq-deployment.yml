@@ -1,0 +1,26 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  labels:
+    app: search-engine
+    component: rabbitmq
+    crawler-rabbitmq: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: search-engine
+      component: rabbitmq
+  template:
+    metadata:
+      name: rabbitmq
+      labels:
+        app: search-engine
+        component: rabbitmq
+        crawler-rabbitmq: "true"
+    spec:
+      containers:
+      - image: rabbitmq:3-management
+        name: rabbitmq
