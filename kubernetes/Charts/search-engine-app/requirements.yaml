@@ -1,0 +1,18 @@
+---
+dependencies:
+  - name: search_crawler
+    version: "1.0.0"
+    repository: "file://../search-crawler"
+
+  - name: search_ui
+    version: "1.0.0"
+    repository: "file://../search-ui"
+
+  - name: rabbitmq
+    version: "6.18.2"
+    repository: https://charts.bitnami.com/bitnami
+
+  - name: mongodb
+    version: "7.8.10"
+    repository: https://charts.bitnami.com/bitnami
+...

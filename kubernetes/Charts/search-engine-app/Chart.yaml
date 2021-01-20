@@ -1,0 +1,6 @@
+name: search-engine-app
+version: 0.1.0
+description: OTUS project - sample search-engine application
+maintainers:
+  - name: GPB Appsec Team
+    email: you@pwnd.lol

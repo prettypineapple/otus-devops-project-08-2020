@@ -122,7 +122,7 @@ default backend - 404
 
 Сборка докер образов с приложениями:
 
-1) cd Dockers/search_engine_ui && docker build -t %GITHUBUSER%/search_crawler:1.0 .
+1) cd Dockers/search_engine_ui && docker build -t %GITHUBUSER%e
 2) cd ../search_engine_crawler && docker build -t %GITHUBUSER%/search_ui:1.0 .
 
 Также запушим в наш репо (иначе в кубере не взлетит):
@@ -147,11 +147,20 @@ docker run -d --hostname mongodb --name mongodb-name --network=local_docker --ne
 docker run -d --hostname search_crawler --name search_crawler-name --network=local_docker --network-alias=search_crawler funnyfatty/search_crawler:1.0
 docker run -d --hostname search_ui --name search_ui-name --network=local_docker --network-alias=search_ui -p 8000:8000 funnyfatty/search_ui:1.0
 
-Если открывается http://localhost:8000/ - то знак хороший.
+Если открывается http://localhost:8000/ - это знак хороший.
 
 ################################################################################################
 
 Поднимаем приложения в k8s
 
-1) cd kubernetes/Apps && 
-2) kubectl apply -f ...
+1) cd kubernetes/Apps
+1.1) Если ранее не подключались к кластеру (gcloud container clusters get-credentials %K8S_CLUSTER_NAME% --zone %ZONE% --project %PROJECT_ID% (команда копируется уже из самого gke))
+2) kubectl apply -f .
+3) kubectl get ingress
+Ищем IP ingress'a, он нужен для генерации сертификата
+4) Генерируем сертификат для https
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=%INGRESS IP HERE%"
+5) Копируем его в кластер
+kubectl create secret tls ui-ingress --key tls.key --cert tls.crt
+
+kubectl apply -f ui-ingress.yml???????

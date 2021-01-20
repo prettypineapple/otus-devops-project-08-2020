@@ -4,3 +4,7 @@
 *.tfvars
 .terraform/
 .idea/
+tls.crt
+tls.key
+DEPRECATED/
+

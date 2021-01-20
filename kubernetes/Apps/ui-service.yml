@@ -2,15 +2,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: outdoor-ui
+  name: ui
   labels:
     app: search-engine
     component: ui
 spec:
   type: NodePort
   ports:
-  - nodePort: 32092
-    port: 8000
+  - port: 8000
     protocol: TCP
     targetPort: 8000
   selector:
