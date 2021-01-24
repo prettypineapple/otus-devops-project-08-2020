@@ -1,14 +1,14 @@
 search_crawler:
   image:
     repository: funnyfatty/search_crawler
-    tag: 1.0
+    tag: "1.0"
   service:
-    externalPort: 8080
+    externalPort: 5672
 
 search_ui:
   image:
     repository: funnyfatty/search_ui
-    tag: 1.0
+    tag: "1.0"
   service:
     externalPort: 8000
 

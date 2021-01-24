@@ -1,10 +1,10 @@
 ---
 dependencies:
-  - name: search_crawler
+  - name: search-crawler
     version: "1.0.0"
     repository: "file://../search-crawler"
 
-  - name: search_ui
+  - name: search-ui
     version: "1.0.0"
     repository: "file://../search-ui"
 

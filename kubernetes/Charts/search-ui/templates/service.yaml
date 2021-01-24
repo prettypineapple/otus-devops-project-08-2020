@@ -17,4 +17,3 @@ spec:
     app: search-engine
     component: ui
     release: {{ .Release.Name }}
-...

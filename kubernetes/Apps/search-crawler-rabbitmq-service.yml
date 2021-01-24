@@ -9,9 +9,9 @@ metadata:
     crawler-rabbitmq: "true"
 spec:
   ports:
-  - port: 8080
+  - port: 5672
     protocol: TCP
-    targetPort: 8080
+    targetPort: 5672
   selector:
     app: search-engine
     component: rabbitmq

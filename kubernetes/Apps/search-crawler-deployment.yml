@@ -27,3 +27,7 @@ spec:
           value: crawler-db
         - name: RMQ_HOST
           value: crawler-rabbitmq
+        - name: RMQ_USERNAME
+          value: guest
+        - name: RMQ_PASSWORD
+          value: guest
