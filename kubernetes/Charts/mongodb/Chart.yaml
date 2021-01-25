@@ -1,0 +1,7 @@
+name: mongodb
+version: 1.0.0
+description: OTUS project - mongodb part
+maintainers:
+  - name: GPB Appsec Team
+    email: you@pwnd.lol
+appVersion: 1.0

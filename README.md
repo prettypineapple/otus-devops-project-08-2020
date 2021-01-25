@@ -122,12 +122,10 @@ default backend - 404
 
 Сборка докер образов с приложениями:
 
-1) cd Dockers/search_engine_ui && docker build -t funnyfatty/search_ui:1.0 .
-2) cd ../search_engine_crawler && docker build -t funnyfatty/search_crawler:1.0 .
+cd Dockers/search_engine_ui && docker build -t funnyfatty/search_ui:1.0 . && cd ../search_engine_crawler && docker build -t funnyfatty/search_crawler:1.0 .
 
 Также запушим в наш репо (иначе в кубере не взлетит):
-docker push funnyfatty/search_ui:1.0
-docker push funnyfatty/search_crawler:1.0
+docker push funnyfatty/search_ui:1.0 && docker push funnyfatty/search_crawler:1.0
 
 ################################################################################################
 
@@ -140,7 +138,7 @@ docker network create local_docker --driver bridge
 docker run -d --hostname rabbitmq --name rabbitmq-name --network=local_docker --network-alias=rabbitmq -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
 
 3) Запуск mongodb
-docker run -d --hostname mongodb --name mongodb-name --network=local_docker --network-alias=mongodb mongo:4.4.3  # todo заменить на 4.2.4 для единообразия?
+docker run -d --hostname mongodb --name mongodb-name --network=local_docker --network-alias=mongodb mongo:4.4.3
 
 
 4)Запускаем сервисы
@@ -157,24 +155,25 @@ docker run -d --hostname search_ui --name search_ui-name --network=local_docker 
 1.1) Если ранее не подключались к кластеру (gcloud container clusters get-credentials %K8S_CLUSTER_NAME% --zone %ZONE% --project %PROJECT_ID% (команда копируется уже из самого gke))
 2) kubectl apply -f .
 3) kubectl get ingress
-Ищем IP ingress'a, он нужен для генерации сертификата
-4) Генерируем сертификат для https
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=34.120.117.82"
+Ищем IP ingress'a (он также нужен для генерации сертификата)
+4) Ждём около 3-5 минут пока раздуплиться UI
+5) http://ip ингресса -> профит
 
-5) Копируем его в кластер
+Можно перейти на HTTPS:
+1) Разкомментируем строчки для ui-ingress.yml
+2) Генерируем сертификат для https
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=34.117.102.70"
+3) Копируем его в кластер
 kubectl create secret tls ui-ingress --key tls.key --cert tls.crt
+4) kubectl apply -f ui-ingress.yml
+5) https://ip ингресса -> профит
 
-6) https://34.120.117.82/
-...
-profit
 
 ################################################################################################
 
 Поднимаем приложение с помощью helm (нужен tiller)
 
-1) helm repo add bitnami https://charts.bitnami.com/bitnami
-2) cd kubernetes/Charts/search-engine-app && helm dep update
-3) cd .. && helm install search-engine-app --name app-test
+cd kubernetes/Charts/search-engine-app && helm dep update && cd .. && helm install search-engine-app --name app-test
 
-cd search-engine-app && helm dep update && cd .. && helm upgrade app-test ./search-engine-app
+
 
