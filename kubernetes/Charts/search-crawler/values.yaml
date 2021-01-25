@@ -1,0 +1,11 @@
+---
+service:
+  internalPort: 8080
+  externalPort: 8080
+
+image:
+  repository: funnyfatty/search_crawler
+  tag: "1.0"
+
+mongodbHost:
+rabbitmqHost:

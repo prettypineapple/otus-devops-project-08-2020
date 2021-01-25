@@ -1,0 +1,34 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+  labels:
+    app: search-engine
+    component: mongodb
+    crawler-db: "true"
+    ui-db: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: search-engine
+      component: mongodb
+  template:
+    metadata:
+      name: mongodb
+      labels:
+        app: search-engine
+        component: mongodb
+        crawler-db: "true"
+        ui-db: "true"
+    spec:
+      containers:
+      - image: mongo:4.4.3
+        name: mongodb
+        volumeMounts:
+        - name: mongo-persistent-storage
+          mountPath: /data/db
+      volumes:
+      - name: mongo-persistent-storage
+        emptyDir: {}

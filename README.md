@@ -30,16 +30,48 @@ Client: &version.Version{SemVer:"v2.17.0", GitCommit:"a690bad98af45b015bd3da1a41
 kubectl version
 Client Version: version.Info{Major:"1", Minor:"19", GitVersion:"v1.19.3", GitCommit:"1e11e4a2108024935ecfcb2912226cedeafd99df", GitTreeState:"clean", BuildDate:"2020-10-14T12:50:19Z", GoVersion:"go1.15.2", Compiler:"gc", Platform:"linux/amd64"}
 
+4) docker
+docker version
+Client: Docker Engine - Community
+ Version:           19.03.12
+ API version:       1.40
+ Go version:        go1.13.10
+ Git commit:        48a66213fe
+ Built:             Mon Jun 22 15:45:44 2020
+ OS/Arch:           linux/amd64
+ Experimental:      false
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          19.03.12
+  API version:      1.40 (minimum version 1.12)
+  Go version:       go1.13.10
+  Git commit:       48a66213fe
+  Built:            Mon Jun 22 15:44:15 2020
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          1.2.13
+  GitCommit:        7ad184331fa3e55e52b890ea95e65ba581ae3429
+ runc:
+  Version:          1.0.0-rc10
+  GitCommit:        dc9208a3303feef5b3839f4323d9beb36df0a9dd
+ docker-init:
+  Version:          0.18.0
+  GitCommit:        fec3683
+
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Создание k8s кластера с Terraform:
  - gcloud auth login
  - gcloud config set project %PROJECT_ID%
  - gcloud services enable container.googleapis.com
- - cd /terraform/k8s-cluster
+ - cd terraform/k8s-cluster
  - terraform init
  - terraform apply
 
 
+################################################################################################
 
  Поднятие системы мониторинга:
  - поднять кластер k8s
@@ -85,4 +117,64 @@ pass: admin
 
 # TODO: ну как и в ДЗ я встрял на какое-то говно..
 default backend - 404
+
+################################################################################################
+
+Сборка докер образов с приложениями:
+
+1) cd Dockers/search_engine_ui && docker build -t funnyfatty/search_ui:1.0 .
+2) cd ../search_engine_crawler && docker build -t funnyfatty/search_crawler:1.0 .
+
+Также запушим в наш репо (иначе в кубере не взлетит):
+docker push funnyfatty/search_ui:1.0
+docker push funnyfatty/search_crawler:1.0
+
+################################################################################################
+
+Запуск приложения (non k8s)
+
+1) Создаём сетку
+docker network create local_docker --driver bridge
+
+2) Запуск rabbitmq
+docker run -d --hostname rabbitmq --name rabbitmq-name --network=local_docker --network-alias=rabbitmq -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
+
+3) Запуск mongodb
+docker run -d --hostname mongodb --name mongodb-name --network=local_docker --network-alias=mongodb mongo:4.4.3  # todo заменить на 4.2.4 для единообразия?
+
+
+4)Запускаем сервисы
+docker run -d --hostname search_crawler --name search_crawler-name --network=local_docker --network-alias=search_crawler funnyfatty/search_crawler:1.0
+docker run -d --hostname search_ui --name search_ui-name --network=local_docker --network-alias=search_ui -p 8000:8000 funnyfatty/search_ui:1.0
+
+Если открывается http://localhost:8000/ - это знак хороший.
+
+################################################################################################
+
+Поднимаем приложения в k8s (с kubectl)
+
+1) cd kubernetes/Apps
+1.1) Если ранее не подключались к кластеру (gcloud container clusters get-credentials %K8S_CLUSTER_NAME% --zone %ZONE% --project %PROJECT_ID% (команда копируется уже из самого gke))
+2) kubectl apply -f .
+3) kubectl get ingress
+Ищем IP ingress'a, он нужен для генерации сертификата
+4) Генерируем сертификат для https
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=34.120.117.82"
+
+5) Копируем его в кластер
+kubectl create secret tls ui-ingress --key tls.key --cert tls.crt
+
+6) https://34.120.117.82/
+...
+profit
+
+################################################################################################
+
+Поднимаем приложение с помощью helm (нужен tiller)
+
+1) helm repo add bitnami https://charts.bitnami.com/bitnami
+2) cd kubernetes/Charts/search-engine-app && helm dep update
+3) cd .. && helm install search-engine-app --name app-test
+
+cd search-engine-app && helm dep update && cd .. && helm upgrade app-test ./search-engine-app
 

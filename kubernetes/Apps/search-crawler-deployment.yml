@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-crawler
+  labels:
+    app: search-engine
+    component: crawler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: search-engine
+      component: crawler
+  template:
+    metadata:
+      name: search-crawler
+      labels:
+        app: search-engine
+        component: crawler
+    spec:
+      containers:
+      - image: funnyfatty/search_crawler:1.0
+        name: search-crawler
+        env:
+        - name: MONGO
+          value: crawler-db
+        - name: RMQ_HOST
+          value: crawler-rabbitmq
+        - name: RMQ_USERNAME
+          value: guest
+        - name: RMQ_PASSWORD
+          value: guest

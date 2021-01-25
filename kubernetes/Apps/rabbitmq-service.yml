@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  labels:
+    app: search-engine
+    component: rabbitmq
+spec:
+  ports:
+  - port: 5672
+    protocol: TCP
+    targetPort: 5672
+  selector:
+    app: search-engine
+    component: rabbitmq
