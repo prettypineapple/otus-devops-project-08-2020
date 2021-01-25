@@ -1,0 +1,17 @@
+flask==0.12.2
+gunicorn==19.7.1
+structlog==17.2.0
+pymongo==3.5.1
+requests==2.18.4
+prometheus-client==0.1.0
+uuid==1.30
+certifi==2020.12.5
+chardet==3.0.4
+click==7.1.2
+idna==2.6
+itsdangerous==1.1.0
+Jinja2==2.11.2
+MarkupSafe==1.1.1
+six==1.15.0
+urllib3==1.22
+Werkzeug==1.0.1
