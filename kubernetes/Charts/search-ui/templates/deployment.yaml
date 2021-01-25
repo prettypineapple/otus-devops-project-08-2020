@@ -33,4 +33,5 @@ spec:
             protocol: TCP
         env:
         - name: MONGO
-          value: {{ .Values.mongodbHost }} # ui-db
+#          {{ .Values.databaseHost | default (printf "%s-mongodb" .Release.Name) }}
+          value: {{ .Values.mongodbHost | default (printf "%s-mongodb" .Release.Name)}} # ui-db

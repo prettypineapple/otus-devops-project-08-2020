@@ -10,7 +10,7 @@ spec:
   - host: {{ .Values.ingress.host | default .Release.Name }}
     http:
       paths:
-      - path: /
+      - path: /*
         backend:
           serviceName: {{ template "search_ui.fullname" . }}
           servicePort: {{ .Values.service.externalPort }}

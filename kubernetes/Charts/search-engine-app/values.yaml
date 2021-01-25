@@ -11,4 +11,3 @@ search_ui:
     tag: "1.0"
   service:
     externalPort: 8000
-

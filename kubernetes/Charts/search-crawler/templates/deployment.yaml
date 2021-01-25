@@ -31,6 +31,10 @@ spec:
             protocol: TCP
         env:
         - name: MONGO
-          value: {{ .Values.mongodbHost }} # crawler-db
+          value: {{ .Values.mongodbHost | default (printf "%s-mongodb" .Release.Name) }} # crawler-db
         - name: RMQ_HOST
-          value: {{ .Values.rabbitmqHost }} # crawler-rabbitmq
+          value: {{ .Values.rabbitmqHost | default (printf "%s-rabbitmq" .Release.Name) }} # crawler-rabbitmq
+        - name: RMQ_USERNAME
+          value: {{ .Values.rabbitmqUser }} # guest
+        - name: RMQ_PASSWORD
+          value: {{ .Values.rabbitmqPassword }} # guest
