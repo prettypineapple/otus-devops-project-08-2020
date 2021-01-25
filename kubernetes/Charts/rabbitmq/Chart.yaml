@@ -1,6 +1,6 @@
-name: mongodb
+name: rabbitmq
 version: 1.0.0
-description: OTUS project - mongodb part
+description: OTUS project - rabbitmq part
 maintainers:
   - name: GPB Appsec Team
     email: you@pwnd.lol
