@@ -8,7 +8,6 @@ stages:
 variables:
   DATABASE_URL: 'mongod://mongo/user_posts'
 
-
 build_job:
   stage: build
   image: docker:19.03.12
@@ -30,8 +29,13 @@ test_crawler_job:
 
 test_ui_job:
   stage: test
+  before_script:
+    - docker run --name=TESTS -d awesomepineapple/search_ui:1.0
+  image: docker:19.03.12
   script:
-    - echo 'Testing 2'
+    - docker exec -t TESTS sh -c "python -m unittest discover -s tests/ "
+  after_script:
+    - docker stop TESTS
 
 deploy:
   stage: deploy
