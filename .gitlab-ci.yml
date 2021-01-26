@@ -8,9 +8,12 @@ stages:
 variables:
   DATABASE_URL: 'mongod://mongo/user_posts'
 
+
 build_job:
   stage: build
   image: docker:19.03.12
+  before_script:
+    - docker version
   script:
     - cd Dockers/search_engine_ui && docker build -t awesomepineapple/search_ui:1.0 . 
     - cd Dockers/search_engine_crawler && docker build -t awesomepineapple/search_crawler:1.0 .
