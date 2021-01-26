@@ -136,7 +136,7 @@ helm upgrade --install grafana stable/grafana --set "server.adminPassword=admin"
 user: admin
 pass: admin
 
-### TODO: ну как и в ДЗ я встрял на какое-то говно.
+#### TODO: ну как и в ДЗ я встрял на какое-то говно.
 
 default backend - 404
 
@@ -170,24 +170,92 @@ cd Dockers/search_engine_ui && docker build -t funnyfatty/search_ui:1.0 . && cd 
 
 ## 3.2. Поднимаем приложения в k8s (с kubectl)
 
-1) `cd kubernetes/Apps`
-1.1) Если ранее не подключались к кластеру - `gcloud container clusters get-credentials %K8S_CLUSTER_NAME% --zone %ZONE% --project %PROJECT_ID%` (команда копируется уже из самого gke)
-2) `kubectl apply -f .`
-3) `kubectl get ingress`
+1. `cd kubernetes/Apps`
+  1.1. Если ранее не подключались к кластеру - `gcloud container clusters get-credentials %K8S_CLUSTER_NAME% --zone %ZONE% --project %PROJECT_ID%` (команда копируется уже из самого gke)
+2. `kubectl apply -f .`
+3. `kubectl get ingress`
 Ищем IP ingress'a (он также нужен для генерации сертификата)
-4) Ждём около 3-5 минут пока раздуплиться UI
-5) `http://ingress_ip` -> профит
+4. Ждём около 3-5 минут пока раздуплиться UI
+5. `http://ingress_ip` -> профит
 
 ### Настройка HTTPS
 
-1) Раcкомментируем строчки для `ui-ingress.yml`
-2) Генерируем сертификат для https
+1. Раcкомментируем строчки для `ui-ingress.yml`
+2. Генерируем сертификат для https
 `openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=34.117.102.70"`
-3) Копируем его в кластер
+3. Копируем его в кластер
 `kubectl create secret tls ui-ingress --key tls.key --cert tls.crt`
-4) `kubectl apply -f ui-ingress.yml`
-5) `https://ingress_ip` -> профит
+4. `kubectl apply -f ui-ingress.yml`
+5. `https://ingress_ip` -> профит
 
 ## 3.3. Поднимаем приложение с помощью helm (нужен tiller)
 
 `cd kubernetes/Charts/search-engine-app && helm dep update && cd .. && helm install search-engine-app --name app-test`
+
+## 4. Создание pipeline для непрерывного тестирования и раскатки новых релизов
+
+## 4.1 Установка и запуск Gitlab-CI
+
+1. Создаём новую VM в GCP: 1 vCPU, 3.75 GB memory, 100 GB persistent disk, Ubuntu 16.04 LTS;
+2. Добавляем ssh-ключ для пользователя и заходим по ssh;
+3. Выполняем с правами пользователя `root` установку `docker` и `docker-compose`:
+
+```
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+add-apt-repository "deb https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+apt-get update
+apt-get install docker-ce docker-compose
+```
+
+4. Подготавливаем необходимые директории и создаём `docker-compose.yml`:
+
+```
+mkdir -p /srv/gitlab/config /srv/gitlab/data /srv/gitlab/logs
+cd /srv/gitlab/
+touch docker-compose.yml
+```
+
+5. Копируем в `docker-compose.yml` содержимое `gitlab-ci/docker-compose.yml` и выполняем команду `docker-compose up -d`;
+6. После того, как Gilab-CI запустится по адресу `http://gitlab-vm-ip`, устанавливаем пароль для пользователя `root` и выключаем в настройках возможность регистрации.
+
+## 4.2 Создание проекта и gitlab-runner
+
+1. Создаём новый проект в Gitlab-CI;
+2. Запускаем на машине с развёрнутым Gitlab-CI gitlab-runner:
+
+```
+sudo docker run -d --name gitlab-runner --restart always \
+-v /srv/gitlab-runner/config:/etc/gitlab-runner \
+-v /var/run/docker.sock:/var/run/docker.sock \
+gitlab/gitlab-runner:latest
+```
+
+3. Регистрируем gitlab-runner для проекта:
+
+```
+sudo docker exec -it gitlab-runner gitlab-runner register -n \
+  --url http://gitlab-vm-ip/ \
+  --registration-token <TOKEN> \
+  --executor docker \
+  --description "My Docker Runner" \
+  --docker-image "docker:19.03.12" \
+  --docker-volumes /var/run/docker.sock:/var/run/docker.sock
+```
+
+4. В локальном git-репозитории подключаем upstream и загружаем содержимое репозитория в Gitlab-CI:
+
+```
+git checkout -b gitlab-ci
+git remote add gitlab http://34.89.244.97/otus-project/diploma
+git push gitlab gitlab-ci
+```
+
+## 4.3 Описание pipeline и тестирование приложения
+
+Описание pipeline находится в файле `.gitlab-ci.yml` в корне репозитория.
+На 26.01 реализована автоматизированная сборка образов и запуск тестов.
+
+#### TO DO: автоматизированная выкатка приложения в k8s
+
+В данный момент Gitlab-CI и pipeline для текущего проекта доступен по ссылке: http://34.89.244.97/otus-project/diploma
+
