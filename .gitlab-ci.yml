@@ -15,8 +15,8 @@ build_job:
   before_script:
     - docker version
   script:
-    - docker build -f ./Dockers/search_engine_ui/Dockerfile -t awesomepineapple/search_ui:1.0 . 
-    - docker build -f ./Dockers/search_engine_crawler/Dockerfile -t awesomepineapple/search_crawler:1.0 .
+    - cd Dockers/search_engine_ui && docker build -t awesomepineapple/search_ui:1.0 . 
+    - cd ../search_engine_crawler && docker build -t awesomepineapple/search_crawler:1.0 .
 
 test_crawler_job:
   stage: test
