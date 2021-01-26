@@ -41,11 +41,6 @@ variable "fw_name" {
   default     = "allow-ssh"
 }
 
-//variable "fw_network" {
-//  description = "The network this firewall rule applies to"
-//  default     = "default"
-//}
-
 variable "fw_priority" {
   description = "The firewall rule priority"
   default     = "1000"
@@ -70,11 +65,6 @@ variable "fw_source_tags" {
   description = "A list of source tags for this firewall rule"
   default     = []
 }
-
-//variable "fw_target_tags" {
-//  description = "A list of target tags for this firewall rule"
-//  default     = []
-//}
 
 variable "master_version" {
   description = "Cluster version"

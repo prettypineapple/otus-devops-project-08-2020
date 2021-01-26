@@ -85,6 +85,20 @@ cd kubernetes/Charts && kubectl apply -f tiller.yml
  - Запускаем tiller-сервер
 helm init --service-account tiller
 
+
+-----
+
+Поднимаем с помощью Helm
+
+helm repo remove stable && helm repo add stable http://mirror.azure.cn/kubernetes/charts/
+
+cd kubernetes/Charts/prometheus && helm dep update && cd .. && helm install prometheus --name prometheus-main
+
+
+
+
+-----
+
  - Ставим nginx
 helm install stable/nginx-ingress --name nginx
 
@@ -175,5 +189,32 @@ kubectl create secret tls ui-ingress --key tls.key --cert tls.crt
 
 cd kubernetes/Charts/search-engine-app && helm dep update && cd .. && helm install search-engine-app --name app-test
 
+cd prometheus && helm dep update && cd .. && helm install prometheus --name prometheus-main
 
 
+
+# Если добавлять прометеус в установку через хелм:
+
+helm install stable/nginx-ingress --name nginx
+
+nginx-nginx-ingress-controller-7d4df4cfff-cxjz9        1/1     Running   0          57s
+nginx-nginx-ingress-default-backend-7565667d48-d5qw8   1/1     Running   0          57s
+
+
+helm install search-engine-app --name app-test
+
+
+
+
+
+helm install nginx-ingress --name app-test
+
+
+
+
+helm fetch stable/kube-state-metrics --version=2.8.14 --untar
+
+
+
+ - С помощью команды "kubectl get svc" находим значение "EXTERNAL-IP" для "nginx-nginx-ingress-controller" и добавляем его в /etc/hosts
+%NGINX_ERTERNAL_IP% reddit reddit-prometheus reddit-grafana reddit-non-prod production reddit-kibana staging prod
