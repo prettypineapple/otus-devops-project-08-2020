@@ -19,7 +19,7 @@ test_crawler_job:
     - mongo:latest
   script:
     - cd Dockers/search_engine_crawler
-    - pip install -r requirements-test.txt
+    - pip install -r requirements.txt && pip install -r requirements-test.txt
     - python -m unittest discover -s tests/ 
 
 test_ui_job:
