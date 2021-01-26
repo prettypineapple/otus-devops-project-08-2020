@@ -1,4 +1,4 @@
-image: ruby:2.4.2
+image: python:3.6
 
 stages:
   - build
@@ -7,10 +7,6 @@ stages:
 
 variables:
   DATABASE_URL: 'mongod://mongo/user_posts'
-
-before_script:
-  - cd reddit
-  - bundle install
 
 build_job:
   stage: build
@@ -22,7 +18,9 @@ test_crawler_job:
   services:
     - mongo:latest
   script:
-    - ruby simpletest.rb
+    - cd Dockers/search_engine_crawler
+    - pip install -r requirements-test.txt
+    - python -m unittest discover -s tests/ 
 
 test_ui_job:
   stage: test
