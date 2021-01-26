@@ -1,0 +1,45 @@
+image: python:3.6
+
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  DATABASE_URL: 'mongod://mongo/user_posts'
+
+
+build_job:
+  stage: build
+  image: docker:19.03.12
+  before_script:
+    - docker version
+  script:
+    - cd Dockers/search_engine_ui && docker build -t awesomepineapple/search_ui:1.0 . 
+    - cd ../search_engine_crawler && docker build -t awesomepineapple/search_crawler:1.0 .
+
+test_crawler_job:
+  stage: test
+  before_script:
+    - docker run --name=TESTS -d awesomepineapple/search_crawler:1.0
+  image: docker:19.03.12
+  script:
+    - docker exec -t TESTS sh -c "python -m unittest discover -s tests/ "
+  after_script:
+    - docker stop TESTS
+
+test_ui_job:
+  stage: test
+  script:
+    - echo 'Testing 2'
+
+deploy:
+  stage: deploy
+  when: manual
+  only:
+    - /^\d+\.\d+\.\d+/
+  script:
+    - echo 'Deploy'
+  environment:
+    name: production
+    url: https://example.com
