@@ -9,7 +9,7 @@ resource "google_container_cluster" "primary" {
   network = var.network
   min_master_version = var.master_version
   node_version = var.master_version
-  // enable_legacy_abac ????
+  enable_legacy_abac = true
 
   //Stackdriver Logging - Отключен
   //Stackdriver Monitoring - Отключен

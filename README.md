@@ -72,84 +72,43 @@ Server: Docker Engine - Community
   GitCommit:        fec3683
 ```
 
-## 1. Создание k8s кластера с Terraform
+## 1. Создание k8s кластера с Terraform и настройка cmd для работы с ним
 
 - `gcloud auth login`
 - `gcloud config set project %PROJECT_ID%`
 - `gcloud services enable container.googleapis.com`
 - `cd terraform/k8s-cluster`
 - `terraform init`
-- `terraform apply`
+- `terraform apply -auto-approve`
+- `gcloud container clusters get-credentials %K8S_CLUSTER_NAME% --zone %ZONE% --project %PROJECT_ID%`
+- `cd kubernetes/Charts && kubectl apply -f tiller.yml`
+- `helm init --service-account tiller`
 
-### Поднятие системы мониторинга
 
-- TODO: поднять кластер k8s
+## 2. Поднятие системы мониторинга
 
-### Получаем доступ в кластер
+- `cd kubernetes/Charts/prometheus && helm dep update && cd .. && helm install prometheus --name prometheus-main` (Вместе с prometheus будет развёрнут nginx)
+- С помощью команды `kubectl get svc` находим значение `EXTERNAL-IP` для `prometheus-main-nginx-ingress-controller` и добавляем в `/etc/hosts` строку `appsec-prometheus appsec-grafana search-engine production staging prod`
+- Через некоторое время он будет доступен по ссылке http://appsec-prometheus/
+- `helm upgrade graf ./grafana`
+- Через некоторое время она будет доступна по ссылке http://appsec-grafana/ (admin:admin)
 
-`gcloud container clusters get-credentials %K8S_CLUSTER_NAME% --zone %ZONE% --project %PROJECT_ID%`
-(команда копируется уже из самого gke)
 
-### Устанавливаем tiller в кластер
+## 2.1 Настройка мониторинга
+- Добавляем prometheus data-source (шестерёнка -> Data Sources -> Add Data Source -> Prometheus)
+- URL: `http://prometheus-main-server` -> save and test -> Back (он будет сохранён)
+- Добавляем `Kubernetes cluster monitoring (via Prometheus)` плагин. (4 квадратика -> Manage -> import -> Upload JSON file -> Выбрать kubernetes/Charts/grafana/kubernetes-cluster-monitoring-via-prometheus_rev3.json -> Выбираем наш prometheus -> import -> profit)
 
-`cd kubernetes/Charts && kubectl apply -f tiller.yml`
-
-### Запускаем tiller-сервер
-
-`helm init --service-account tiller`
-
-### Ставим nginx
-
-`helm install stable/nginx-ingress --name nginx`
-
-#### TODO: Этот шаг надо поправить на актуальный, пока тупо копипаста с ДЗ
-
-С помощью команды `kubectl get svc` находим значение `EXTERNAL-IP` для `nginx-nginx-ingress-controller` и добавляем его в `/etc/hosts`
-
-`%NGINX_ERTERNAL_IP% reddit reddit-prometheus reddit-grafana reddit-non-prod production reddit-kibana staging prod`
-
-`35.205.119.141 reddit reddit-prometheus reddit-grafana reddit-non-prod production reddit-kibana staging prod`
-
-## 2. Настройка мониторинга
-
-#### TODO: в настройках prometeus пока тупо копипаста с ДЗ
-
-#### TODO: Этот шаг надо поправить на актуальный, пока тупо копипаста с ДЗ. В частности не очень понимаю смысл upgrade prom
-
-### Устанавливаем prometeus
-
-`cd prometheus && helm upgrade prom . -f custom_values.yml --install`
-
-Через некоторое время она будет доступна по ссылке http://reddit-prometheus/
-
-### Устанавливаем grafana
-
-```
-helm upgrade --install grafana stable/grafana --set "server.adminPassword=admin" \
---set "server.service.type=NodePort" \
---set "server.ingress.enabled=true" \
---set "server.ingress.hosts={reddit-grafana}"
-```
-
-Через некоторое время она будет доступна по ссылке http://reddit-grafana/
-
-user: admin
-pass: admin
-
-#### TODO: ну как и в ДЗ я встрял на какое-то говно.
-
-default backend - 404
-
-## 3. Запуск приложения
+## 3. Сборка и запуск приложения (ручные)
 
 ### Сборка докер образов с приложениями
 
 ```
-cd Dockers/search_engine_ui && docker build -t funnyfatty/search_ui:1.0 . && cd ../search_engine_crawler && docker build -t funnyfatty/search_crawler:1.0 .
+cd Dockers/search_engine_ui && docker build -t %GITHUBUSER%/search_ui:1.0 . && cd ../search_engine_crawler && docker build -t %GITHUBUSER%/search_crawler:1.0 .
 ```
 
 Также запушим в наш репо (иначе в кубере не взлетит):
-`docker push funnyfatty/search_ui:1.0 && docker push funnyfatty/search_crawler:1.0`
+`docker push %GITHUBUSER%/search_ui:1.0 && docker push %GITHUBUSER%/search_crawler:1.0`
 
 ## 3.1. Запуск приложения (non k8s)
 
@@ -163,19 +122,18 @@ cd Dockers/search_engine_ui && docker build -t funnyfatty/search_ui:1.0 . && cd 
 `docker run -d --hostname mongodb --name mongodb-name --network=local_docker --network-alias=mongodb mongo:4.4.3`
 
 4)Запускаем сервисы
-`docker run -d --hostname search_crawler --name search_crawler-name --network=local_docker --network-alias=search_crawler funnyfatty/search_crawler:1.0`
-`docker run -d --hostname search_ui --name search_ui-name --network=local_docker --network-alias=search_ui -p 8000:8000 funnyfatty/search_ui:1.0`
+`docker run -d --hostname search_crawler --name search_crawler-name --network=local_docker --network-alias=search_crawler %GITHUBUSER%/search_crawler:1.0`
+`docker run -d --hostname search_ui --name search_ui-name --network=local_docker --network-alias=search_ui -p 8000:8000 %GITHUBUSER%/search_ui:1.0`
 
 Если открывается `http://localhost:8000/` - это знак хороший.
 
-## 3.2. Поднимаем приложения в k8s (с kubectl)
+## 3.2. Поднимаем приложения в k8s (с kubectl non k8s)
 
 1. `cd kubernetes/Apps`
-  1.1. Если ранее не подключались к кластеру - `gcloud container clusters get-credentials %K8S_CLUSTER_NAME% --zone %ZONE% --project %PROJECT_ID%` (команда копируется уже из самого gke)
 2. `kubectl apply -f .`
 3. `kubectl get ingress`
 Ищем IP ingress'a (он также нужен для генерации сертификата)
-4. Ждём около 3-5 минут пока раздуплиться UI
+4. Ждём около 5 минут пока раздуплиться UI
 5. `http://ingress_ip` -> профит
 
 ### Настройка HTTPS
@@ -188,9 +146,9 @@ cd Dockers/search_engine_ui && docker build -t funnyfatty/search_ui:1.0 . && cd 
 4. `kubectl apply -f ui-ingress.yml`
 5. `https://ingress_ip` -> профит
 
-## 3.3. Поднимаем приложение с помощью helm (нужен tiller)
+## 3.3. Поднимаем приложение с помощью helm (k8s)
 
-`cd kubernetes/Charts/search-engine-app && helm dep update && cd .. && helm install search-engine-app --name app-test`
+`cd kubernetes/Charts/search-engine-app && helm dep update && cd .. && helm install search-engine-app --name search-engine` (если скучно, то можно указать namespace `--namespace production`)
 
 ## 4. Создание pipeline для непрерывного тестирования и раскатки новых релизов
 
@@ -258,4 +216,3 @@ git push gitlab gitlab-ci
 #### TO DO: автоматизированная выкатка приложения в k8s
 
 В данный момент Gitlab-CI и pipeline для текущего проекта доступен по ссылке: http://34.89.244.97/otus-project/diploma
-

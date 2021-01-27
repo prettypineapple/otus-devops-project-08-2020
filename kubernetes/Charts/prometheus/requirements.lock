@@ -1,6 +1,9 @@
 dependencies:
 - name: kube-state-metrics
-  repository: https://kubernetes-charts.storage.googleapis.com/
+  repository: file://../kube-state-metrics
   version: 2.8.14
-digest: sha256:3e94c0566f73424827ea01361b0d0d665bd3e4c137b737a90520f92dfd2b250c
-generated: 2020-10-15T14:57:35.234949942Z
+- name: nginx-ingress
+  repository: file://../nginx-ingress
+  version: 1.41.3
+digest: sha256:718fa63710f630cad50f6c369242c132a4629ebbab8731b1083bc21a8aa5e5cb
+generated: "2021-01-26T08:41:31.587129636-08:00"

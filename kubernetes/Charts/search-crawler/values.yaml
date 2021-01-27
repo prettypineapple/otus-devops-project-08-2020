@@ -1,7 +1,7 @@
 ---
 service:
-  internalPort: 5672
-  externalPort: 5672
+  internalPort: 8000
+  externalPort: 8000
 
 image:
   repository: funnyfatty/search_crawler
