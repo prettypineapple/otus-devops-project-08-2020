@@ -1,0 +1,8 @@
+---
+plugin: gcp_compute
+projects: 
+  - dsuper-gcp-project-31337
+auth_kind: serviceaccount
+service_account_file: service-account.json
+groups:
+  gitlab: "'gitlab' in name"
