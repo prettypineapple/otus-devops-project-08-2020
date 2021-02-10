@@ -5,5 +5,8 @@ dependencies:
 - name: nginx-ingress
   repository: file://../nginx-ingress
   version: 1.41.3
-digest: sha256:718fa63710f630cad50f6c369242c132a4629ebbab8731b1083bc21a8aa5e5cb
-generated: "2021-01-26T08:41:31.587129636-08:00"
+- name: grafana
+  repository: file://../grafana
+  version: 5.5.7
+digest: sha256:8e9e252c425654e73ca630aef5a4ee7e0866e680b484bfeb903fc67fa98adc56
+generated: "2021-02-10T10:56:21.029826188-08:00"
