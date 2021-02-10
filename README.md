@@ -87,11 +87,9 @@ Server: Docker Engine - Community
 
 ## 2. Поднятие системы мониторинга
 
-- `cd kubernetes/Charts/prometheus && helm dep update && cd .. && helm install prometheus --name prometheus-main` (Вместе с prometheus будет развёрнут nginx)
+- `cd kubernetes/Charts/prometheus && helm dep update && cd .. && helm install prometheus --name prometheus-main` (Вместе с prometheus будет развёрнут nginx и графата)
 - С помощью команды `kubectl get svc` находим значение `EXTERNAL-IP` для `prometheus-main-nginx-ingress-controller` и добавляем в `/etc/hosts` строку `appsec-prometheus appsec-grafana search-engine production staging prod`
-- Через некоторое время он будет доступен по ссылке http://appsec-prometheus/
-- `helm upgrade graf ./grafana`
-- Через некоторое время она будет доступна по ссылке http://appsec-grafana/ (admin:admin)
+- Через некоторое время он будет доступен по ссылке http://appsec-prometheus/, а также будет доступна графана http://appsec-grafana/ (admin:admin)
 
 
 ## 2.1 Настройка мониторинга
@@ -127,7 +125,7 @@ cd Dockers/search_engine_ui && docker build -t %GITHUBUSER%/search_ui:1.0 . && c
 
 Если открывается `http://localhost:8000/` - это знак хороший.
 
-## 3.2. Поднимаем приложения в k8s (с kubectl non k8s)
+## 3.2. Поднимаем приложения в k8s (с kubectl)
 
 1. `cd kubernetes/Apps`
 2. `kubectl apply -f .`
@@ -148,7 +146,9 @@ cd Dockers/search_engine_ui && docker build -t %GITHUBUSER%/search_ui:1.0 . && c
 
 ## 3.3. Поднимаем приложение с помощью helm (k8s)
 
-`cd kubernetes/Charts/search-engine-app && helm dep update && cd .. && helm install search-engine-app --name search-engine` (если скучно, то можно указать namespace `--namespace production`)
+1. `cd kubernetes/Charts/search-engine-app && helm dep update && cd .. && helm install search-engine-app --name search-engine`   -  аля не продакшн версия
+2. `helm install search-engine-app --name search-engine --namespace production`   -  аля продакшн версия
+
 
 ## 4. Создание pipeline для непрерывного тестирования и раскатки новых релизов
 
