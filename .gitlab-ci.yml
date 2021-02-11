@@ -20,30 +20,48 @@ build_job:
 test_crawler_job:
   stage: test
   before_script:
-    - docker run --name=TESTS -d awesomepineapple/search_crawler:1.0
+    - docker run --name=test_crawler -d awesomepineapple/search_crawler:1.0
   image: docker:19.03.12
   script:
-    - docker exec -t TESTS sh -c "python -m unittest discover -s tests/ "
+    - docker exec -t test_crawler sh -c "python -m unittest discover -s tests/ "
   after_script:
-    - docker stop TESTS
+    - docker stop test_crawler && docker rm test_crawler
 
 test_ui_job:
   stage: test
   before_script:
-    - docker run --name=TESTS -d awesomepineapple/search_ui:1.0
+    - docker rm test_ui
+    - docker run --name=test_ui -d awesomepineapple/search_ui:1.0
   image: docker:19.03.12
   script:
-    - docker exec -t TESTS sh -c "python -m unittest discover -s tests/ "
+    - docker exec -t test_ui sh -c "cd .. && python -m unittest discover -s tests/ "
   after_script:
-    - docker stop TESTS
+    - docker stop test_ui && docker rm test_ui
 
 deploy:
   stage: deploy
-  when: manual
-  only:
-    - /^\d+\.\d+\.\d+/
+  image: alpine:latest
+  before_script:
+    - apk add -U openssl curl tar gzip bash ca-certificates git
+    - curl https://get.helm.sh/helm-v3.5.0-linux-amd64.tar.gz | tar zx
+    - mv linux-amd64/helm /usr/bin/
+    - helm version --client
+    - curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.18.12/bin/linux/amd64/kubectl
+    - chmod +x /usr/bin/kubectl
+    - kubectl version --client
+    - kubectl config set-cluster gke-cluster --server=https://35.240.6.176 --insecure-skip-tls-verify=true
+    - kubectl config set-credentials gitlab-admin --token=
+    - kubectl config set-context default --cluster=	gke-cluster --user=gitlab-admin
+    - kubectl config use-context default
+    - helm repo add stable https://charts.helm.sh/stable
+    - helm repo update
   script:
-    - echo 'Deploy'
+    - echo $KUBE_NAMESPACE
+    - cd ./search-engine-app && helm dep update && cd .. && helm install search-engine-app --name prod
+    - helm install search-engine-app --name prod --namespace "$KUBE_NAMESPACE"
+  variables:
+    KUBE_NAMESPACE: production
   environment:
-    name: production
-    url: https://example.com
+    name: staging
+  only:
+    kubernetes: active

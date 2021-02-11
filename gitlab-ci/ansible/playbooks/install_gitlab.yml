@@ -1,0 +1,34 @@
+---
+- name: Configure host
+  hosts: gitlab
+  become: true
+
+  tasks:
+  # - name: Install Docker Module for Python
+  #   pip:
+  #     name: docker
+
+  - name: Install docker-compose Module for Python
+    pip:
+      name: docker-compose
+
+  - name: Create directories
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - /srv/gitlab/config
+      - /srv/gitlab/data
+      - /srv/gitlab/logs
+
+  - name: Add docker-compose file for gitlab-ci
+    copy:
+        src: files/docker-compose.yml
+        dest: /srv/gitlab/docker-compose.yml
+
+  - name: Deploy gitlab docker image
+    docker_compose:
+      project_src: /srv/gitlab/
+      files:
+      - docker-compose.yml
+      state: present
