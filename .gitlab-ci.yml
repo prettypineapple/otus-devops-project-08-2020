@@ -25,7 +25,7 @@ test_crawler_job:
   script:
     - docker exec -t TESTS sh -c "python -m unittest discover -s tests/ "
   after_script:
-    - docker stop TESTS
+    - docker stop TESTS && docker rm TESTS
 
 test_ui_job:
   stage: test
@@ -35,15 +35,9 @@ test_ui_job:
   script:
     - docker exec -t TESTS sh -c "python -m unittest discover -s tests/ "
   after_script:
-    - docker stop TESTS
+    - docker stop TESTS && docker rm TESTS
 
 deploy:
   stage: deploy
-  when: manual
-  only:
-    - /^\d+\.\d+\.\d+/
   script:
-    - echo 'Deploy'
-  environment:
-    name: production
-    url: https://example.com
+    - echo $KUBECONFIG
