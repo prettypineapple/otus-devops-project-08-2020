@@ -72,6 +72,10 @@ Server: Docker Engine - Community
   GitCommit:        fec3683
 ```
 
+## Как установить вообще всё в один клик:
+`sh install_all.sh`
+
+
 ## 1. Создание k8s кластера с Terraform и настройка cmd для работы с ним
 
 - `gcloud auth login`
@@ -80,21 +84,21 @@ Server: Docker Engine - Community
 - `cd terraform/k8s-cluster`
 - `terraform init`
 - `terraform apply -auto-approve`
-- `gcloud container clusters get-credentials %K8S_CLUSTER_NAME% --zone %ZONE% --project %PROJECT_ID%`
-- `cd kubernetes/Charts && kubectl apply -f tiller.yml`
+- `gcloud container clusters get-credentials gke-cluster --zone europe-west1-b --project diploma-301517`
+- `cd ../../kubernetes/Charts && kubectl apply -f tiller.yml`
 - `helm init --service-account tiller`
 
 
 ## 2. Поднятие системы мониторинга
 
-- `cd kubernetes/Charts/prometheus && helm dep update && cd .. && helm install prometheus --name prometheus-main` (Вместе с prometheus будет развёрнут nginx и графата)
-- С помощью команды `kubectl get svc` находим значение `EXTERNAL-IP` для `prometheus-main-nginx-ingress-controller` и добавляем в `/etc/hosts` строку `appsec-prometheus appsec-grafana search-engine production staging prod`
+- `cd kubernetes/Charts/prometheus && helm dep update && cd .. && helm install prometheus --name monitoring-system` (Вместе с prometheus будет развёрнут nginx и графата)
+- С помощью команды `kubectl get svc` находим значение `EXTERNAL-IP` для `monitoring-system-nginx-ingress-controller` и добавляем в `/etc/hosts` строку `appsec-prometheus appsec-grafana search-engine production staging prod`
 - Через некоторое время он будет доступен по ссылке http://appsec-prometheus/, а также будет доступна графана http://appsec-grafana/ (admin:admin)
 
 
 ## 2.1 Настройка мониторинга
 - Добавляем prometheus data-source (шестерёнка -> Data Sources -> Add Data Source -> Prometheus)
-- URL: `http://prometheus-main-server` -> save and test -> Back (он будет сохранён)
+- URL: `http://monitoring-system-server` -> save and test -> Back (он будет сохранён)
 - Добавляем `Kubernetes cluster monitoring (via Prometheus)` плагин. (4 квадратика -> Manage -> import -> Upload JSON file -> Выбрать kubernetes/Charts/grafana/kubernetes-cluster-monitoring-via-prometheus_rev3.json -> Выбираем наш prometheus -> import -> profit)
 
 ## 3. Сборка и запуск приложения (ручные)
