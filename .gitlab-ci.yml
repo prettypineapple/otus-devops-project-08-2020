@@ -17,27 +17,50 @@ build_job:
     - cd Dockers/search_engine_ui && docker build -t awesomepineapple/search_ui:1.0 . 
     - cd ../search_engine_crawler && docker build -t awesomepineapple/search_crawler:1.0 .
 
-# test_crawler_job:
-#   stage: test
-#   before_script:
-#     - docker run --name=test_crawler -d awesomepineapple/search_crawler:1.0
-#   image: docker:19.03.12
-#   script:
-#     - docker exec -t test_crawler sh -c "python -m unittest discover -s tests/ "
-#   after_script:
-#     - docker stop test_crawler && docker rm test_crawler
+test_crawler_job:
+  stage: test
+  before_script:
+    - docker run --name=test_crawler -d awesomepineapple/search_crawler:1.0
+  image: docker:19.03.12
+  script:
+    - docker exec -t test_crawler sh -c "python -m unittest discover -s tests/ "
+  after_script:
+    - docker stop test_crawler && docker rm test_crawler
 
-# test_ui_job:
-#   stage: test
-#   before_script:
-#     - docker run --name=test_ui -d awesomepineapple/search_ui:1.0
-#   image: docker:19.03.12
-#   script:
-#     - docker exec -t test_ui sh -c "python -m unittest discover -s tests/ "
-#   after_script:
-#     - docker stop test_ui && docker rm test_crawler
+test_ui_job:
+  stage: test
+  before_script:
+    - docker run --name=test_ui -d awesomepineapple/search_ui:1.0
+  image: docker:19.03.12
+  script:
+    - docker exec -t test_ui sh -c "cd .. && python -m unittest discover -s tests/ "
+  after_script:
+    - docker stop test_ui && docker rm test_crawler
 
 deploy:
   stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add -U openssl curl tar gzip bash ca-certificates git
+    - curl https://get.helm.sh/helm-v3.5.0-linux-amd64.tar.gz | tar zx
+    - mv linux-amd64/helm /usr/bin/
+    - helm version --client
+    - curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.18.12/bin/linux/amd64/kubectl
+    - chmod +x /usr/bin/kubectl
+    - kubectl version --client
+    - kubectl config set-cluster gke-cluster --server=https://35.240.6.176 --insecure-skip-tls-verify=true
+    - kubectl config set-credentials gitlab-admin --token=eyJhbGciOiJSUzI1NiIsImtpZCI6ImRWZE1fZ05pdWhDTGtjYmYyQWhxWkJpZXF5d082YkRVcEVTd3RxMm92WGcifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJnaXRsYWItdG9rZW4tZG5sbmciLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZ2l0bGFiIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiMmY4OTQ4MTktYzdjZS00YTRhLTk0ZGMtNzljMjMxZjBiMjQwIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Omt1YmUtc3lzdGVtOmdpdGxhYiJ9.Cvkhn7jSMljLLhx28LOQwZzjncn7E9wR9U95YbDjLuVG-RvMUN8II_pOwmU8Q0rvtwieagpGTICJHca5ixe1CMRHt4CGG4hgT-53CQEL3KObXjGBNsXkSAKWf0ZNqNX3QrnG3tUI_oAUpq7NPOcxceHDYn0jP6n3tCj_qyccKmUU4goFiQWE8PcpUr94W4qehaW5z0v6b3HpKjeQP0B2oUQ3vq2wJCYcX0-86IVZ4X9npia1QiRsSRdQn31RXNxT8rgk3n8bzI8TNAsOy8jXemIM1pgKpprNnOWy4Xpl_kNdUtwzDRmuwC42WigIFMWw6WT0nd92m5wUqxb-0mtJag
+    - kubectl config set-context default --cluster=	gke-cluster --user=gitlab-admin
+    - kubectl config use-context default
+    - helm repo add stable https://charts.helm.sh/stable
+    - helm repo update
   script:
-    - echo $KUBECONFIG
+    - echo $KUBE_NAMESPACE
+    - cd ./search-engine-app && helm dep update && cd .. && helm install search-engine-app --name prod
+    - helm install search-engine-app --name prod --namespace "$KUBE_NAMESPACE"
+  variables:
+    KUBE_NAMESPACE: production
+  environment:
+    name: staging
+  only:
+    kubernetes: active
