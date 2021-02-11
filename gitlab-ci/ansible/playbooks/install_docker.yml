@@ -1,0 +1,16 @@
+---
+- name: Install docker and docker compose for gitlab runner
+  hosts: gitlab
+  become: true
+
+  tasks:
+  - name: Update repositories cache and install docker
+    become: true
+    apt:
+      name: [docker.io, python-setuptools, python-pip, docker-compose]
+      update_cache: yes
+
+  - name: enable docker
+    become: true
+    systemd: name=docker enabled=yes
+
