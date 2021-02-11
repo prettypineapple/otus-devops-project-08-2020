@@ -33,5 +33,6 @@ spec:
           - name: {{ .Values.volumeMounts.name }}
             mountPath: {{ .Values.volumeMounts.mountPath }}
       volumes:
-      - name: {{ .Values.volumes.name }}
-        emptyDir: {}
+      - name: {{ .Values.volumeMounts.name }}
+        persistentVolumeClaim:
+          claimName: {{ template "mongodb.fullname" . }}

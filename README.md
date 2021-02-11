@@ -72,6 +72,10 @@ Server: Docker Engine - Community
   GitCommit:        fec3683
 ```
 
+## Как установить вообще всё в один клик:
+`sh install_all.sh`
+
+
 ## 1. Создание k8s кластера с Terraform и настройка cmd для работы с ним
 
 - `gcloud auth login`
@@ -80,23 +84,21 @@ Server: Docker Engine - Community
 - `cd terraform/k8s-cluster`
 - `terraform init`
 - `terraform apply -auto-approve`
-- `gcloud container clusters get-credentials %K8S_CLUSTER_NAME% --zone %ZONE% --project %PROJECT_ID%`
-- `cd kubernetes/Charts && kubectl apply -f tiller.yml`
+- `gcloud container clusters get-credentials gke-cluster --zone europe-west1-b --project diploma-301517`
+- `cd ../../kubernetes/Charts && kubectl apply -f tiller.yml`
 - `helm init --service-account tiller`
 
 
 ## 2. Поднятие системы мониторинга
 
-- `cd kubernetes/Charts/prometheus && helm dep update && cd .. && helm install prometheus --name prometheus-main` (Вместе с prometheus будет развёрнут nginx)
-- С помощью команды `kubectl get svc` находим значение `EXTERNAL-IP` для `prometheus-main-nginx-ingress-controller` и добавляем в `/etc/hosts` строку `appsec-prometheus appsec-grafana search-engine production staging prod`
-- Через некоторое время он будет доступен по ссылке http://appsec-prometheus/
-- `helm upgrade graf ./grafana`
-- Через некоторое время она будет доступна по ссылке http://appsec-grafana/ (admin:admin)
+- `cd kubernetes/Charts/prometheus && helm dep update && cd .. && helm install prometheus --name monitoring-system` (Вместе с prometheus будет развёрнут nginx и графата)
+- С помощью команды `kubectl get svc` находим значение `EXTERNAL-IP` для `monitoring-system-nginx-ingress-controller` и добавляем в `/etc/hosts` строку `appsec-prometheus appsec-grafana search-engine production staging prod`
+- Через некоторое время он будет доступен по ссылке http://appsec-prometheus/, а также будет доступна графана http://appsec-grafana/ (admin:admin)
 
 
 ## 2.1 Настройка мониторинга
 - Добавляем prometheus data-source (шестерёнка -> Data Sources -> Add Data Source -> Prometheus)
-- URL: `http://prometheus-main-server` -> save and test -> Back (он будет сохранён)
+- URL: `http://monitoring-system-server` -> save and test -> Back (он будет сохранён)
 - Добавляем `Kubernetes cluster monitoring (via Prometheus)` плагин. (4 квадратика -> Manage -> import -> Upload JSON file -> Выбрать kubernetes/Charts/grafana/kubernetes-cluster-monitoring-via-prometheus_rev3.json -> Выбираем наш prometheus -> import -> profit)
 
 ## 3. Сборка и запуск приложения (ручные)
@@ -127,7 +129,7 @@ cd Dockers/search_engine_ui && docker build -t %GITHUBUSER%/search_ui:1.0 . && c
 
 Если открывается `http://localhost:8000/` - это знак хороший.
 
-## 3.2. Поднимаем приложения в k8s (с kubectl non k8s)
+## 3.2. Поднимаем приложения в k8s (с kubectl)
 
 1. `cd kubernetes/Apps`
 2. `kubectl apply -f .`
@@ -148,7 +150,9 @@ cd Dockers/search_engine_ui && docker build -t %GITHUBUSER%/search_ui:1.0 . && c
 
 ## 3.3. Поднимаем приложение с помощью helm (k8s)
 
-`cd kubernetes/Charts/search-engine-app && helm dep update && cd .. && helm install search-engine-app --name search-engine` (если скучно, то можно указать namespace `--namespace production`)
+1. `cd kubernetes/Charts/search-engine-app && helm dep update && cd .. && helm install search-engine-app --name search-engine`   -  аля не продакшн версия
+2. `helm install search-engine-app --name search-engine --namespace production`   -  аля продакшн версия
+
 
 ## 4. Создание pipeline для непрерывного тестирования и раскатки новых релизов
 

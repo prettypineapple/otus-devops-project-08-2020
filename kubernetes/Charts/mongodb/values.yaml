@@ -3,12 +3,18 @@ service:
   internalPort: 27017
   externalPort: 27017
 
+storageclass:
+  name: "fast"
+
+#volume:
+#  name: "pvc-dynamic"
+
 image:
   repository: mongo
   tag: "4.4.3"
 
 volumeMounts:
-  name: "mongo-persistent-storage"
+  name: "mongo-gce-pd-storage"
   mountPath: "/data/db"
 
 volumes:
