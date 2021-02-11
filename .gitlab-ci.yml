@@ -20,6 +20,7 @@ build_job:
 test_crawler_job:
   stage: test
   before_script:
+    - docker rm test_crawler
     - docker run --name=test_crawler -d awesomepineapple/search_crawler:1.0
   image: docker:19.03.12
   script:
