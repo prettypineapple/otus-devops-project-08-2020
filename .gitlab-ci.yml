@@ -20,7 +20,6 @@ build_job:
 test_crawler_job:
   stage: test
   before_script:
-    - docker rm test_crawler
     - docker run --name=test_crawler -d awesomepineapple/search_crawler:1.0
   image: docker:19.03.12
   script:
@@ -28,15 +27,15 @@ test_crawler_job:
   after_script:
     - docker stop test_crawler && docker rm test_crawler
 
-# test_ui_job:
-#   stage: test
-#   before_script:
-#     - docker run --name=test_ui -d awesomepineapple/search_ui:1.0
-#   image: docker:19.03.12
-#   script:
-#     - docker exec -t test_ui sh -c "python -m unittest discover -s tests/ "
-#   after_script:
-#     - docker stop test_ui && docker rm test_crawler
+test_ui_job:
+  stage: test
+  before_script:
+    - docker run --name=test_ui -d awesomepineapple/search_ui:1.0
+  image: docker:19.03.12
+  script:
+    - docker exec -t test_ui sh -c "python -m unittest discover -s tests/ "
+  after_script:
+    - docker stop test_ui && docker rm test_crawler
 
 deploy:
   stage: deploy
