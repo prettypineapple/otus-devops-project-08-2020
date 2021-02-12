@@ -8,4 +8,4 @@ tls.crt
 tls.key
 DEPRECATED/
 service-account.json
-
+.DS_Store

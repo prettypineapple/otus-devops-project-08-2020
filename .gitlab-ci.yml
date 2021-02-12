@@ -30,7 +30,6 @@ test_crawler_job:
 test_ui_job:
   stage: test
   before_script:
-    - docker rm test_ui
     - docker run --name=test_ui -d awesomepineapple/search_ui:1.0
   image: docker:19.03.12
   script:
@@ -43,24 +42,22 @@ deploy:
   image: alpine:latest
   before_script:
     - apk add -U openssl curl tar gzip bash ca-certificates git
-    - curl https://get.helm.sh/helm-v3.5.0-linux-amd64.tar.gz | tar zx
+    - curl https://get.helm.sh/helm-v2.17.0-linux-amd64.tar.gz | tar zx
     - mv linux-amd64/helm /usr/bin/
     - helm version --client
-    - curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.18.12/bin/linux/amd64/kubectl
+    - curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.19.3/bin/linux/amd64/kubectl
     - chmod +x /usr/bin/kubectl
     - kubectl version --client
-    - kubectl config set-cluster gke-cluster --server=https://35.240.6.176 --insecure-skip-tls-verify=true
-    - kubectl config set-credentials gitlab-admin --token=
-    - kubectl config set-context default --cluster=	gke-cluster --user=gitlab-admin
-    - kubectl config use-context default
-    - helm repo add stable https://charts.helm.sh/stable
-    - helm repo update
+    - helm init
   script:
-    - echo $KUBE_NAMESPACE
-    - cd ./search-engine-app && helm dep update && cd .. && helm install search-engine-app --name prod
-    - helm install search-engine-app --name prod --namespace "$KUBE_NAMESPACE"
-  variables:
-    KUBE_NAMESPACE: production
+    - echo $KUBECONFIG
+    - export KUBECONFIG=$KUBECONFIG
+    - ls ./kubernetes/Charts/
+    - cat ./kubernetes/Charts/search-engine-app/requirements.yaml
+    - cd ./kubernetes/Charts/search-engine-app && helm repo update
+    - helm dep update 
+    - cd .. && helm install search-engine-app --name search-engine
+    - helm install search-engine-app --name search-engine-prod --namespace production
   environment:
     name: staging
   only:
