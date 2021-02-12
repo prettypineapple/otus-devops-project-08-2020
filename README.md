@@ -98,7 +98,7 @@ Server: Docker Engine - Community
 
 ## 2.1 Настройка мониторинга
 - Добавляем prometheus data-source (шестерёнка -> Data Sources -> Add Data Source -> Prometheus)
-- URL: `http://monitoring-system-server` -> save and test -> Back (он будет сохранён)
+- URL: `http://monitoring-system-prometheus-server` -> save and test -> Back (он будет сохранён)
 - Добавляем `Kubernetes cluster monitoring (via Prometheus)` плагин. (4 квадратика -> Manage -> import -> Upload JSON file -> Выбрать kubernetes/Charts/grafana/kubernetes-cluster-monitoring-via-prometheus_rev3.json -> Выбираем наш prometheus -> import -> profit)
 
 ## 3. Сборка и запуск приложения (ручные)
@@ -158,16 +158,9 @@ cd Dockers/search_engine_ui && docker build -t %GITHUBUSER%/search_ui:1.0 . && c
 
 ## 4.1 Установка и запуск Gitlab-CI
 
-1. Создаём новую VM в GCP: 1 vCPU, 3.75 GB memory, 100 GB persistent disk, Ubuntu 16.04 LTS;
-2. Добавляем ssh-ключ для пользователя и заходим по ssh;
-3. Выполняем с правами пользователя `root` установку `docker` и `docker-compose`:
-
-```
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-add-apt-repository "deb https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-apt-get update
-apt-get install docker-ce docker-compose
-```
+1. В директории `./gitlab-ci/terraform` выполнить команду `terraform apply`;
+2. В директории `./gitlab-ci/ansible` выполнить команду `ansible-playbook playbooks/install_docker.yml`;
+3. Подключиться по ssh к созданному инстансу gitlab;
 
 4. Подготавливаем необходимые директории и создаём `docker-compose.yml`:
 
@@ -208,15 +201,40 @@ sudo docker exec -it gitlab-runner gitlab-runner register -n \
 
 ```
 git checkout -b gitlab-ci
-git remote add gitlab http://34.89.244.97/otus-project/diploma
+git remote add gitlab http://<gitlab-vm-ip>/otus-project/diploma
 git push gitlab gitlab-ci
 ```
 
-## 4.3 Описание pipeline и тестирование приложения
+## 4.3 Подключение к проекту созданного k8s-кластера
+
+1. Получить адрес Kubernetes API:
+
+`kubectl cluster-info | grep 'Kubernetes master' | awk '/http/ {print $NF}'`
+
+2. Получить список секретов кластера:
+
+`kubectl get secrets`
+
+3. Получить сертификат:
+
+`kubectl get secret <default-token-31337> -o jsonpath="{['data']['ca\.crt']}" | base64 --decode`
+
+4. Задеплоить gitlab-admin-service-account.yml и получить токен для gitlab-admin:
+
+
+```
+kubectl apply -f gitlab-admin-service-account.yaml
+ash-work:~ kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep gitlab-admin | awk '{print $1}')
+```
+
+5. Подключить с помощью полученных сертификатов и токенов кластер через Gitlab-CI UI.
+
+## 4.4 Описание pipeline и тестирование приложения
 
 Описание pipeline находится в файле `.gitlab-ci.yml` в корне репозитория.
-На 26.01 реализована автоматизированная сборка образов и запуск тестов.
 
-#### TO DO: автоматизированная выкатка приложения в k8s
 
-В данный момент Gitlab-CI и pipeline для текущего проекта доступен по ссылке: http://34.89.244.97/otus-project/diploma
+
+
+kubectl get secrets
+kubectl get secret <secret name> -o jsonpath="{['data']['ca\.crt']}" | base64 --decode
