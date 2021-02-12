@@ -53,8 +53,7 @@ deploy:
   script:
     - echo $KUBECONFIG
     - export KUBECONFIG=$KUBECONFIG
-    - pwd
-    - cd ./search-engine-app && helm dep update && cd .. && helm install search-engine-app --name search-engine
+    - cd ./kubernetes/Charts/search-engine-app && helm dep update && cd .. && helm install search-engine-app --name search-engine
     - helm install search-engine-app --name search-engine-prod --namespace production
   environment:
     name: staging
