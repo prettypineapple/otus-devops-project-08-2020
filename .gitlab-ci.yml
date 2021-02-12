@@ -49,18 +49,11 @@ deploy:
     - curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.18.12/bin/linux/amd64/kubectl
     - chmod +x /usr/bin/kubectl
     - kubectl version --client
-    - kubectl config set-cluster gke-cluster --server=https://35.240.6.176 --insecure-skip-tls-verify=true
-    - kubectl config set-credentials gitlab-admin --token=
-    - kubectl config set-context default --cluster=	gke-cluster --user=gitlab-admin
-    - kubectl config use-context default
     - helm repo add stable https://charts.helm.sh/stable
     - helm repo update
   script:
-    - echo $KUBE_NAMESPACE
-    - cd ./search-engine-app && helm dep update && cd .. && helm install search-engine-app --name prod
-    - helm install search-engine-app --name prod --namespace "$KUBE_NAMESPACE"
-  variables:
-    KUBE_NAMESPACE: production
+    - echo $KUBECONFIG
+    - export KUBECONFIG=$KUBECONFIG
   environment:
     name: staging
   only:
