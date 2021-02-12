@@ -48,7 +48,6 @@ deploy:
     - curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.18.12/bin/linux/amd64/kubectl
     - chmod +x /usr/bin/kubectl
     - kubectl version --client
-    - helm repo add stable https://charts.helm.sh/stable
     - helm repo update
   script:
     - echo $KUBECONFIG
