@@ -30,7 +30,6 @@ test_crawler_job:
 test_ui_job:
   stage: test
   before_script:
-    - docker rm test_ui
     - docker run --name=test_ui -d awesomepineapple/search_ui:1.0
   image: docker:19.03.12
   script:
