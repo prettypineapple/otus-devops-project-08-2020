@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script settings
-PROJECT_ID="diploma-301517"
+PROJECT_ID="docker-297609"
 ZONE="europe-west1-b"
 MONITORING_NAME="monitoring-system"
 NON_RELEASE_NAME="search-engine"
@@ -25,19 +25,12 @@ cd ../../kubernetes/Charts && kubectl apply -f tiller.yml
 print "Lets take some time for tiller deploy. (Sleep 30s)"
 sleep 30
 print "Init account and wait some time"
-helm init --service-account tiller
+/usr/local/opt/helm@2/bin/helm init --service-account tiller
 sleep 30
 print "Installing monitoring system"
-cd ./prometheus && helm dep update && cd .. && helm install prometheus --name $MONITORING_NAME
-print "Installing non-release application version"
-cd ./search-engine-app && helm dep update && cd .. && helm install search-engine-app --name $NON_RELEASE_NAME
-print "Installing release application version"
-helm install search-engine-app --name $RELEASE_NAME --namespace production
+cd ./prometheus && /usr/local/opt/helm@2/bin/helm dep update && cd .. && /usr/local/opt/helm@2/bin/helm install prometheus --name $MONITORING_NAME
 print "Waiting for applications up and running (sleep 2 mins)"
 sleep 2m
 print "Please add this ip to hosts file (for prometeus + grafana)"
 kubectl get svc | grep $MONITORING_NAME-nginx-ingress-controller
-print "This is non-release application IP:"
-kubectl get svc | grep $NON_RELEASE_NAME-search-ui
-print "This is release application IP:"
-kubectl get svc --namespace production | grep $RELEASE_NAME-search-ui
+

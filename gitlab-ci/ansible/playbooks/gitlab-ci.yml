@@ -1,6 +1,0 @@
-- name: Configure App
-  hosts: gitlab
-  become: true
-
-  roles:
-    - geerlingguy.gitlab
