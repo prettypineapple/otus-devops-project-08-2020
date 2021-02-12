@@ -42,10 +42,10 @@ deploy:
   image: alpine:latest
   before_script:
     - apk add -U openssl curl tar gzip bash ca-certificates git
-    - curl https://get.helm.sh/helm-v2.0.0-linux-amd64.tar.gz | tar zx
+    - curl https://get.helm.sh/helm-v2.17.0-linux-amd64.tar.gz | tar zx
     - mv linux-amd64/helm /usr/bin/
     - helm version --client
-    - curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.18.12/bin/linux/amd64/kubectl
+    - curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.19.3/bin/linux/amd64/kubectl
     - chmod +x /usr/bin/kubectl
     - kubectl version --client
     - helm init
