@@ -224,7 +224,7 @@ git push gitlab gitlab-ci
 
 ```
 kubectl apply -f gitlab-admin-service-account.yaml
-ash-work:~ kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep gitlab-admin | awk '{print $1}')
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep gitlab-admin | awk '{print $1}')
 ```
 
 5. Подключить с помощью полученных сертификатов и токенов кластер через Gitlab-CI UI.
@@ -233,8 +233,3 @@ ash-work:~ kubectl -n kube-system describe secret $(kubectl -n kube-system get s
 
 Описание pipeline находится в файле `.gitlab-ci.yml` в корне репозитория.
 
-
-
-
-kubectl get secrets
-kubectl get secret <secret name> -o jsonpath="{['data']['ca\.crt']}" | base64 --decode
