@@ -49,6 +49,7 @@ deploy:
     - chmod +x /usr/bin/kubectl
     - kubectl version --client
     - helm init
+    - helm repo add
     - helm repo update
   script:
     - echo $KUBECONFIG
